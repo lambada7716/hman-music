@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Song, Artist } from '../types/music';
 import {
   Play,
@@ -16,10 +16,12 @@ import {
   ListMusic,
   Moon,
   Blend,
-  Share2
+  Share2,
+  Video
 } from 'lucide-react';
 import { ArtworkImage } from './ArtworkImage';
 import { ArtistAvatar } from './ArtistAvatar';
+import { audioEngine } from '../services/audioEngine';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -89,6 +91,13 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
   const progressBarRef = useRef<HTMLDivElement | null>(null);
   const [hoverSeekPercent, setHoverSeekPercent] = useState<number | null>(null);
   const [isCrossfadePopoverOpen, setIsCrossfadePopoverOpen] = useState(false);
+  const [isMvActive, setIsMvActive] = useState<boolean>(() => audioEngine.getIsMvVisible());
+
+  useEffect(() => {
+    return audioEngine.subscribeMvState((visible) => {
+      setIsMvActive(visible);
+    });
+  }, []);
 
   if (!currentSong) return null;
 
@@ -447,6 +456,19 @@ export const PlayerBar: React.FC<PlayerBarProps> = ({
               </>
             )}
           </div>
+
+          {/* Official Music Video PiP Mode */}
+          <button
+            onClick={() => audioEngine.toggleMvVisible()}
+            className={`transition hover:scale-110 p-1 rounded-lg ${
+              isMvActive
+                ? 'text-red-400 bg-red-500/20 border border-red-500/40 shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+            title={isMvActive ? 'Hide Music Video' : 'Watch Official Music Video (MV)'}
+          >
+            <Video className="w-4 h-4" />
+          </button>
 
           <button
             onClick={onOpenLyrics}

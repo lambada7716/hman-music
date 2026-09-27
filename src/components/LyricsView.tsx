@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Song } from '../types/music';
-import { X, Mic2, SkipForward, ArrowDownCircle, Share2 } from 'lucide-react';
+import { X, Mic2, SkipForward, ArrowDownCircle, Share2, Video } from 'lucide-react';
 import { ArtworkImage } from './ArtworkImage';
+import { audioEngine } from '../services/audioEngine';
 
 interface LyricsViewProps {
   song: Song | null;
@@ -160,6 +161,14 @@ export const LyricsView: React.FC<LyricsViewProps> = ({ song, currentTime, onSee
             {song.lyrics?.length ? `${song.lyrics.length} synced lyric lines` : ''}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => audioEngine.toggleMvVisible()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-xs text-red-200 font-medium transition hover:scale-105 active:scale-95"
+              title="Toggle Official Music Video (MV)"
+            >
+              <Video className="w-3.5 h-3.5 text-red-400" />
+              <span>Video MV</span>
+            </button>
             {onShare && (
               <button
                 onClick={onShare}

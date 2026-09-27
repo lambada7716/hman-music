@@ -11,7 +11,8 @@ import {
   Sparkles,
   Bot,
   Film,
-  Mic
+  Mic,
+  Upload
 } from 'lucide-react';
 import { Playlist } from '../types/music';
 
@@ -25,6 +26,7 @@ interface SidebarProps {
   onSelectPlaylist?: (playlist: Playlist) => void;
   onOpenCreatePlaylist: () => void;
   onOpenAiStudio: (tab?: 'chat' | 'video' | 'transcribe') => void;
+  onUploadLocalAudio?: (file: File) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -34,7 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   playlists,
   onSelectPlaylist,
   onOpenCreatePlaylist,
-  onOpenAiStudio
+  onOpenAiStudio,
+  onUploadLocalAudio
 }) => {
   return (
     <aside className="hidden md:flex flex-col w-64 h-full glass-panel border-r border-white/10 pt-7 pb-28 z-20 shrink-0 select-none">
@@ -204,6 +207,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Users className={`w-4 h-4 ${currentView === 'artists' ? 'text-purple-400' : ''}`} />
                 <span>Artists</span>
               </button>
+            </li>
+            <li>
+              <label className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-400 hover:text-white hover:bg-white/5 transition cursor-pointer group">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && onUploadLocalAudio) {
+                      onUploadLocalAudio(file);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+                <Upload className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform shrink-0" />
+                <div className="flex flex-col text-left overflow-hidden">
+                  <span className="truncate">Upload Lagu Sendiri</span>
+                  <span className="text-[10px] text-purple-400/80 font-medium">Bebas durasi (MP3/WAV)</span>
+                </div>
+              </label>
             </li>
           </ul>
         </div>

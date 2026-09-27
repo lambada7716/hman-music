@@ -26,6 +26,7 @@ export interface Song {
   lyrics: LyricLine[];
   audioConfig: AudioToneConfig;
   audioUrl?: string;
+  youtubeId?: string;
 }
 
 export interface Playlist {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Sparkles, ListMusic, Orbit, Mic, Bot } from 'lucide-react';
+import { Search, Sparkles, ListMusic, Orbit, Mic, Bot, Upload } from 'lucide-react';
 
 interface HeaderProps {
   searchQuery: string;
@@ -10,6 +10,7 @@ interface HeaderProps {
   onToggleQueue: () => void;
   queueCount: number;
   onOpenAiStudio: (tab?: 'chat' | 'video' | 'transcribe') => void;
+  onUploadLocalAudio?: (file: File) => void;
 }
 
 const GENRE_FILTERS = [
@@ -29,7 +30,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleVisualizer,
   onToggleQueue,
   queueCount,
-  onOpenAiStudio
+  onOpenAiStudio,
+  onUploadLocalAudio
 }) => {
   return (
     <header className="sticky top-0 z-30 w-full glass-panel border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between gap-4">
@@ -92,8 +94,28 @@ export const Header: React.FC<HeaderProps> = ({
         })}
       </nav>
 
-      {/* Zone 3: Actions (Cosmo AI, Visualizer & Queue) */}
+      {/* Zone 3: Actions (Upload MP3, Cosmo AI, Visualizer & Queue) */}
       <div className="flex items-center gap-2 shrink-0">
+        <label
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-600/15 hover:bg-purple-600/30 border border-purple-500/30 text-purple-200 text-xs font-semibold transition hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+          title="Putar Lagu Penuh Anda Sendiri (MP3 / WAV / FLAC)"
+        >
+          <input
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file && onUploadLocalAudio) {
+                onUploadLocalAudio(file);
+                e.target.value = '';
+              }
+            }}
+          />
+          <Upload className="w-3.5 h-3.5 text-purple-300" />
+          <span className="hidden sm:inline">Upload MP3</span>
+        </label>
+
         <button
           onClick={() => onOpenAiStudio('chat')}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600/30 to-pink-600/30 hover:from-purple-600/50 hover:to-pink-600/50 border border-purple-500/40 text-purple-200 text-xs font-semibold transition hover:scale-105 active:scale-95 shadow-sm"

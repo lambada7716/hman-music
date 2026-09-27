@@ -29,7 +29,7 @@ const FAVORITES_KEY = 'hman_galaxy_favorites_v1';
 const PLAYLISTS_KEY = 'hman_galaxy_playlists_v1';
 
 export default function App() {
-  const [songs] = useState<Song[]>(ALL_SONGS);
+  const [songs, setSongs] = useState<Song[]>(ALL_SONGS);
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
     try {
       const saved = localStorage.getItem(PLAYLISTS_KEY);
@@ -244,6 +244,71 @@ export default function App() {
       return filtered;
     });
   }, []);
+
+  const handleUploadLocalAudio = useCallback(
+    (file: File) => {
+      try {
+        const objectUrl = URL.createObjectURL(file);
+        const tempAudio = new Audio(objectUrl);
+
+        tempAudio.addEventListener('loadedmetadata', () => {
+          const fullDuration = Math.round(tempAudio.duration) || 210;
+          const cleanTitle = file.name.replace(/\.[^/.]+$/, '');
+
+          const newSong: Song = {
+            id: `local-${Date.now()}`,
+            title: cleanTitle,
+            artist: 'Local Track',
+            artistId: 'local-artist',
+            album: 'Device Music',
+            duration: fullDuration,
+            year: new Date().getFullYear(),
+            cover:
+              'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+            coverGradient: 'from-purple-900 via-indigo-950 to-slate-950',
+            artistImage:
+              'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&auto=format&fit=crop&q=80',
+            genre: 'Local',
+            audioUrl: objectUrl,
+            audioConfig: {
+              bpm: 120,
+              rootFreq: 220,
+              chords: [[220, 261.63, 329.63]],
+              bassNotes: [110],
+              style: 'pop',
+            },
+            lyrics: [
+              { time: 0, text: `Now playing: ${cleanTitle}` },
+              {
+                time: 5,
+                text: `Full track (${Math.floor(fullDuration / 60)}:${(fullDuration % 60)
+                  .toString()
+                  .padStart(2, '0')}) streamed directly from device`,
+              },
+            ],
+          };
+
+          setSongs((prev) => [newSong, ...prev]);
+          playSong(newSong);
+          showToast(
+            `Memutar lagu "${cleanTitle}" penuh (${Math.floor(fullDuration / 60)}:${(
+              fullDuration % 60
+            )
+              .toString()
+              .padStart(2, '0')}) 🎵`
+          );
+        });
+
+        tempAudio.addEventListener('error', () => {
+          showToast('Gagal memuat file audio. Harap gunakan format MP3, WAV, atau FLAC.');
+        });
+      } catch (e) {
+        console.error('File upload error:', e);
+        showToast('Error saat membaca file audio');
+      }
+    },
+    [playSong, showToast]
+  );
 
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
@@ -514,6 +579,7 @@ export default function App() {
         }}
         onOpenCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
         onOpenAiStudio={handleOpenAiStudio}
+        onUploadLocalAudio={handleUploadLocalAudio}
       />
 
       {/* Main View Area */}
@@ -536,6 +602,7 @@ export default function App() {
           onToggleQueue={() => setIsQueueOpen((prev) => !prev)}
           queueCount={queue.length}
           onOpenAiStudio={handleOpenAiStudio}
+          onUploadLocalAudio={handleUploadLocalAudio}
         />
 
         {/* Dynamic Scrollable Content */}

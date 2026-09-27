@@ -1,5 +1,12 @@
 import { Song } from '../types/music';
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: (() => void) | undefined;
+  }
+}
+
 interface AudioChannel {
   id: 'channelA' | 'channelB';
   audio: HTMLAudioElement;
@@ -8,6 +15,7 @@ interface AudioChannel {
   song: Song | null;
   isFadingOut: boolean;
   crossfadeTriggered: boolean;
+  targetDuration: number;
 }
 
 class AudioEngine {
@@ -18,24 +26,34 @@ class AudioEngine {
   private isPlaying: boolean = false;
   private volume: number = 0.8;
   private isMuted: boolean = false;
-  private crossfadeDuration: number = 4; // Default 4 seconds crossfade
+  private crossfadeDuration: number = 4;
   private isCrossfadingActive: boolean = false;
 
   private activeChannelIndex: 0 | 1 = 0;
   private channels: AudioChannel[] = [];
   private channelsInitialized: boolean = false;
 
+  // YouTube Full-Length Audio/Video Engine
+  private ytPlayer: any = null;
+  private isYtReady: boolean = false;
+  private isYtApiLoading: boolean = false;
+  private ytPollInterval: number | null = null;
+  private activeMode: 'youtube' | 'html5' = 'youtube';
+  private currentActiveSong: Song | null = null;
+  private pendingSongToPlay: { song: Song; startTime: number } | null = null;
+  private isMvVisible: boolean = false;
+
   private onTimeUpdateCallbacks: Set<(time: number) => void> = new Set();
   private onDurationChangeCallbacks: Set<(duration: number) => void> = new Set();
   private onEndedCallbacks: Set<() => void> = new Set();
   private onCrossfadeTriggerCallbacks: Set<() => void> = new Set();
   private onCrossfadeStateCallbacks: Set<(isCrossfading: boolean) => void> = new Set();
+  private onMvStateCallbacks: Set<(visible: boolean) => void> = new Set();
 
   private fallbackTimerId: number | null = null;
   private simulatedFreqBuffer: Uint8Array = new Uint8Array(32);
 
   constructor() {
-    // Attempt to load persisted crossfade preference
     try {
       const saved = localStorage.getItem('hman_crossfade_duration');
       if (saved !== null) {
@@ -45,10 +63,231 @@ class AudioEngine {
         }
       }
     } catch {
-      // Ignore localStorage errors
+      // Ignore
+    }
+
+    if (typeof window !== 'undefined') {
+      this.initYouTubePlayer();
     }
   }
 
+  // ----------------------------------------------------
+  // YouTube Full-Track Audio/Video Player Setup
+  // ----------------------------------------------------
+  private ensureYouTubeContainer(): HTMLElement {
+    let dock = document.getElementById('hman-yt-dock');
+    if (!dock) {
+      dock = document.createElement('div');
+      dock.id = 'hman-yt-dock';
+      dock.style.position = 'fixed';
+      dock.style.bottom = '96px';
+      dock.style.right = '24px';
+      dock.style.width = '320px';
+      dock.style.height = '180px';
+      dock.style.borderRadius = '16px';
+      dock.style.overflow = 'hidden';
+      dock.style.boxShadow = '0 20px 50px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.15)';
+      dock.style.zIndex = '45';
+      dock.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+      dock.style.display = 'none';
+      dock.style.backgroundColor = '#000';
+
+      // Header bar for PiP MV dock
+      const header = document.createElement('div');
+      header.style.position = 'absolute';
+      header.style.top = '0';
+      header.style.left = '0';
+      header.style.width = '100%';
+      header.style.height = '28px';
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.justifyContent = 'space-between';
+      header.style.padding = '0 8px';
+      header.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)';
+      header.style.zIndex = '10';
+
+      const title = document.createElement('span');
+      title.innerText = 'Official Music Video';
+      title.style.color = '#e2e8f0';
+      title.style.fontSize = '10px';
+      title.style.fontWeight = '600';
+      title.style.letterSpacing = '0.05em';
+      title.style.fontFamily = 'system-ui, sans-serif';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.innerText = '✕';
+      closeBtn.style.background = 'none';
+      closeBtn.style.border = 'none';
+      closeBtn.style.color = '#fff';
+      closeBtn.style.fontSize = '12px';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.padding = '2px 6px';
+      closeBtn.title = 'Minimize video (audio keeps playing)';
+      closeBtn.onclick = () => this.setMvVisible(false);
+
+      header.appendChild(title);
+      header.appendChild(closeBtn);
+      dock.appendChild(header);
+
+      const iframeSlot = document.createElement('div');
+      iframeSlot.id = 'hman-yt-slot';
+      iframeSlot.style.width = '100%';
+      iframeSlot.style.height = '100%';
+      dock.appendChild(iframeSlot);
+
+      document.body.appendChild(dock);
+    }
+    return dock;
+  }
+
+  private loadYouTubeApi(): Promise<void> {
+    if (typeof window === 'undefined') return Promise.resolve();
+    if (window.YT && window.YT.Player) {
+      this.isYtReady = true;
+      return Promise.resolve();
+    }
+    if (this.isYtApiLoading) {
+      return new Promise((resolve) => {
+        const interval = setInterval(() => {
+          if (this.isYtReady) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    this.isYtApiLoading = true;
+    return new Promise((resolve) => {
+      const existing = document.getElementById('yt-iframe-api');
+      if (!existing) {
+        const tag = document.createElement('script');
+        tag.id = 'yt-iframe-api';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+      }
+
+      const prevCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        this.isYtReady = true;
+        this.isYtApiLoading = false;
+        resolve();
+      };
+    });
+  }
+
+  private async initYouTubePlayer() {
+    if (this.ytPlayer || typeof window === 'undefined') return;
+    this.ensureYouTubeContainer();
+    await this.loadYouTubeApi();
+
+    try {
+      this.ytPlayer = new window.YT.Player('hman-yt-slot', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          disablekb: 1,
+          fs: 1,
+          iv_load_policy: 3,
+          modestbranding: 1,
+          rel: 0,
+          playsinline: 1,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: () => {
+            this.isYtReady = true;
+            if (this.pendingSongToPlay) {
+              const { song, startTime } = this.pendingSongToPlay;
+              this.pendingSongToPlay = null;
+              this.playWithYouTube(song, startTime);
+            }
+          },
+          onStateChange: (event: any) => {
+            // YT states: -1: unstarted, 0: ended, 1: playing, 2: paused, 3: buffering, 5: cued
+            if (event.data === 1) {
+              this.isPlaying = true;
+              const dur = this.ytPlayer.getDuration();
+              if (dur > 0) {
+                this.notifyDurationChange(dur);
+              }
+            } else if (event.data === 2) {
+              this.isPlaying = false;
+            } else if (event.data === 0) {
+              // Full song actually ended!
+              this.notifyEnded();
+            }
+          },
+          onError: (e: any) => {
+            console.warn('YouTube player warning:', e);
+            // Fallback to HTML5 audio if YouTube has geographical restrictions
+            this.fallbackToHtml5();
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('YouTube init warning:', e);
+    }
+  }
+
+  private startYouTubePolling() {
+    if (this.ytPollInterval !== null) {
+      clearInterval(this.ytPollInterval);
+    }
+    this.ytPollInterval = window.setInterval(() => {
+      if (this.activeMode === 'youtube' && this.ytPlayer && this.isYtReady && this.isPlaying) {
+        try {
+          const currentTime = this.ytPlayer.getCurrentTime();
+          const duration = this.ytPlayer.getDuration();
+          if (typeof currentTime === 'number' && !isNaN(currentTime)) {
+            this.notifyTimeUpdate(currentTime);
+
+            // Crossfade notification if near full-track ending
+            if (
+              this.crossfadeDuration > 0 &&
+              duration > this.crossfadeDuration + 2 &&
+              currentTime >= duration - this.crossfadeDuration
+            ) {
+              this.notifyCrossfadeTrigger();
+            }
+          }
+        } catch {
+          // Ignore polling errors during player buffering
+        }
+      }
+    }, 200);
+  }
+
+  public setMvVisible(visible: boolean) {
+    this.isMvVisible = visible;
+    const dock = document.getElementById('hman-yt-dock');
+    if (dock) {
+      dock.style.display = visible ? 'block' : 'none';
+    }
+    this.onMvStateCallbacks.forEach((cb) => cb(visible));
+  }
+
+  public toggleMvVisible(): boolean {
+    const next = !this.isMvVisible;
+    this.setMvVisible(next);
+    return next;
+  }
+
+  public getIsMvVisible(): boolean {
+    return this.isMvVisible;
+  }
+
+  public subscribeMvState(cb: (visible: boolean) => void): () => void {
+    this.onMvStateCallbacks.add(cb);
+    return () => this.onMvStateCallbacks.delete(cb);
+  }
+
+  // ----------------------------------------------------
+  // HTML5 Web Audio Setup (for Local Uploaded MP3s / Fallback)
+  // ----------------------------------------------------
   private initAudioNodes() {
     if (this.channelsInitialized) return;
 
@@ -71,7 +310,6 @@ class AudioEngine {
       console.warn('Web Audio Context initialization warning:', e);
     }
 
-    // Create 2 audio channels for seamless playback and dual-track crossfades
     const channelIds: ('channelA' | 'channelB')[] = ['channelA', 'channelB'];
     this.channels = channelIds.map((id) => {
       const audio = new Audio();
@@ -90,11 +328,9 @@ class AudioEngine {
           sourceNode = this.ctx.createMediaElementSource(audio);
           sourceNode.connect(gainNode);
         } catch {
-          // In case createMediaElementSource is not supported or CORS restricted
           sourceNode = null;
         }
       } else {
-        // Fallback mock gain
         gainNode = {
           gain: {
             value: 1,
@@ -116,6 +352,7 @@ class AudioEngine {
         song: null,
         isFadingOut: false,
         crossfadeTriggered: false,
+        targetDuration: 0,
       };
 
       this.attachAudioListeners(channel);
@@ -130,18 +367,16 @@ class AudioEngine {
 
     audio.addEventListener('timeupdate', () => {
       const activeChannel = this.channels[this.activeChannelIndex];
-      if (activeChannel === channel && this.isPlaying) {
-        const currentTime = audio.currentTime;
-        this.notifyTimeUpdate(currentTime);
+      if (activeChannel === channel && this.isPlaying && this.activeMode === 'html5') {
+        const rawTime = audio.currentTime;
+        const dur = audio.duration || channel.targetDuration;
+        this.notifyTimeUpdate(rawTime);
 
-        const duration = audio.duration || (channel.song ? channel.song.duration : 0);
-
-        // Check for crossfade trigger threshold
         if (
           !channel.crossfadeTriggered &&
           this.crossfadeDuration > 0 &&
-          duration > this.crossfadeDuration + 2 &&
-          currentTime >= duration - this.crossfadeDuration
+          dur > this.crossfadeDuration + 2 &&
+          rawTime >= dur - this.crossfadeDuration
         ) {
           channel.crossfadeTriggered = true;
           this.notifyCrossfadeTrigger();
@@ -151,7 +386,7 @@ class AudioEngine {
 
     audio.addEventListener('ended', () => {
       const activeChannel = this.channels[this.activeChannelIndex];
-      if (activeChannel === channel) {
+      if (activeChannel === channel && this.activeMode === 'html5') {
         if (!channel.crossfadeTriggered) {
           this.notifyEnded();
         }
@@ -160,79 +395,79 @@ class AudioEngine {
 
     audio.addEventListener('loadedmetadata', () => {
       const activeChannel = this.channels[this.activeChannelIndex];
-      if (activeChannel === channel && !isNaN(audio.duration) && audio.duration > 0) {
-        this.notifyDurationChange(audio.duration);
+      if (activeChannel === channel && this.activeMode === 'html5') {
+        if (!isNaN(audio.duration) && audio.duration > 0) {
+          channel.targetDuration = audio.duration;
+          this.notifyDurationChange(audio.duration);
+        }
       }
     });
-
-    audio.addEventListener('error', (e) => {
-      console.warn(`Audio channel [${channel.id}] error:`, e, audio.error);
-    });
   }
 
-  // Volume & Mute Controls
-  public setVolume(val: number) {
-    this.volume = Math.max(0, Math.min(1, val));
-    if (this.masterGain && this.ctx && !this.isMuted) {
-      this.masterGain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.05);
-    }
-    // Also set native audio element volume directly
-    this.channels.forEach((c) => {
-      c.audio.volume = this.isMuted ? 0 : this.volume;
-    });
-  }
-
-  public getVolume(): number {
-    return this.volume;
-  }
-
-  public toggleMute(): boolean {
-    this.isMuted = !this.isMuted;
-    if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setTargetAtTime(
-        this.isMuted ? 0 : this.volume,
-        this.ctx.currentTime,
-        0.05
-      );
-    }
-    this.channels.forEach((c) => {
-      c.audio.muted = this.isMuted;
-    });
-    return this.isMuted;
-  }
-
-  public getIsMuted(): boolean {
-    return this.isMuted;
-  }
-
-  // Crossfade Configuration
-  public setCrossfadeDuration(seconds: number) {
-    this.crossfadeDuration = Math.max(0, Math.min(12, seconds));
-    try {
-      localStorage.setItem('hman_crossfade_duration', this.crossfadeDuration.toString());
-    } catch {
-      // Ignore localStorage errors
-    }
-  }
-
-  public getCrossfadeDuration(): number {
-    return this.crossfadeDuration;
-  }
-
-  public getIsCrossfading(): boolean {
-    return this.isCrossfadingActive;
-  }
-
-  // Playback Control with Real Song Audio
+  // ----------------------------------------------------
+  // Playback Control: Full Song Playback
+  // ----------------------------------------------------
   public async playSong(song: Song, startTime: number = 0, forceCrossfade?: boolean) {
-    this.initAudioNodes();
+    this.currentActiveSong = song;
 
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
 
+    // 1. If song has YouTube ID, use YouTube Full-Track engine!
+    if (song.youtubeId) {
+      this.activeMode = 'youtube';
+      // Stop all HTML5 audio
+      this.channels.forEach((c) => {
+        c.audio.pause();
+        c.audio.currentTime = 0;
+      });
+
+      if (!this.isYtReady || !this.ytPlayer) {
+        this.pendingSongToPlay = { song, startTime };
+        this.initYouTubePlayer();
+      } else {
+        this.playWithYouTube(song, startTime);
+      }
+      return;
+    }
+
+    // 2. Otherwise use HTML5 Audio element (e.g. user local uploaded MP3 file)
+    this.activeMode = 'html5';
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.pauseVideo();
+      } catch {}
+    }
+
+    await this.playWithHtml5(song, startTime, forceCrossfade);
+  }
+
+  private playWithYouTube(song: Song, startTime: number = 0) {
+    if (!this.ytPlayer || !this.isYtReady) return;
+
+    this.isPlaying = true;
+    try {
+      this.ytPlayer.loadVideoById({
+        videoId: song.youtubeId,
+        startSeconds: startTime || 0,
+      });
+      this.ytPlayer.setVolume(this.isMuted ? 0 : Math.round(this.volume * 100));
+      this.ytPlayer.playVideo();
+    } catch (e) {
+      console.warn('YouTube loadVideoById error:', e);
+    }
+
+    this.notifyDurationChange(song.duration);
+    this.notifyTimeUpdate(startTime || 0);
+    this.startYouTubePolling();
+  }
+
+  private async playWithHtml5(song: Song, startTime: number = 0, forceCrossfade?: boolean) {
+    this.initAudioNodes();
+
     const shouldCrossfade =
-      (forceCrossfade ?? (this.crossfadeDuration > 0)) &&
+      (forceCrossfade ?? this.crossfadeDuration > 0) &&
       this.isPlaying &&
       this.channels.length > 1 &&
       this.crossfadeDuration > 0;
@@ -240,11 +475,11 @@ class AudioEngine {
     const fadeDuration = shouldCrossfade ? this.crossfadeDuration : 0;
     const prevChannel = this.channels[this.activeChannelIndex];
 
-    // Select incoming channel
-    const nextChannelIndex = (shouldCrossfade ? (this.activeChannelIndex === 0 ? 1 : 0) : this.activeChannelIndex) as 0 | 1;
+    const nextChannelIndex = (
+      shouldCrossfade ? (this.activeChannelIndex === 0 ? 1 : 0) : this.activeChannelIndex
+    ) as 0 | 1;
     const nextChannel = this.channels[nextChannelIndex];
 
-    // 1. Handle outgoing channel if crossfading
     if (shouldCrossfade && prevChannel && prevChannel !== nextChannel && prevChannel.song) {
       prevChannel.isFadingOut = true;
       this.setCrossfadingState(true);
@@ -265,7 +500,6 @@ class AudioEngine {
         this.setCrossfadingState(false);
       }, fadeDuration * 1000 + 100);
     } else {
-      // Stop all previous audio immediately
       this.channels.forEach((c) => {
         if (c !== nextChannel) {
           c.audio.pause();
@@ -275,24 +509,16 @@ class AudioEngine {
       this.setCrossfadingState(false);
     }
 
-    // 2. Prepare incoming channel
     this.activeChannelIndex = nextChannelIndex;
     nextChannel.song = song;
     nextChannel.isFadingOut = false;
     nextChannel.crossfadeTriggered = false;
+    nextChannel.targetDuration = song.duration;
 
-    // Resolve real audio URL
-    let audioUrl = song.audioUrl;
-    if (!audioUrl) {
-      const fetchedUrl = await this.resolveAudioUrlOnTheFly(song);
-      if (fetchedUrl) {
-        song.audioUrl = fetchedUrl;
-        audioUrl = fetchedUrl;
-      }
-    }
+    this.notifyDurationChange(song.duration);
 
-    if (audioUrl) {
-      nextChannel.audio.src = audioUrl;
+    if (song.audioUrl) {
+      nextChannel.audio.src = song.audioUrl;
       nextChannel.audio.currentTime = startTime;
 
       if (shouldCrossfade && this.ctx && nextChannel.gainNode.gain) {
@@ -310,12 +536,18 @@ class AudioEngine {
         await nextChannel.audio.play();
         this.isPlaying = true;
       } catch (err) {
-        console.warn('Playback play request was deferred until user interaction:', err);
+        console.warn('HTML5 Playback deferred:', err);
       }
     } else {
-      // If no audio stream is available, track time progression smoothly
       this.isPlaying = true;
       this.startFallbackTimer(song, startTime);
+    }
+  }
+
+  private fallbackToHtml5() {
+    if (this.currentActiveSong && this.currentActiveSong.audioUrl) {
+      this.activeMode = 'html5';
+      this.playWithHtml5(this.currentActiveSong, 0);
     }
   }
 
@@ -340,36 +572,65 @@ class AudioEngine {
     }, 250);
   }
 
-  private async resolveAudioUrlOnTheFly(song: Song): Promise<string | null> {
-    try {
-      const isIndo =
-        song.genre.toLowerCase().includes('indo') ||
-        song.id.startsWith('indo') ||
-        song.id.startsWith('lawas');
-      const cleanArtist = song.artist
-        .replace(/ft\..*$/i, '')
-        .replace(/&.*$/i, '')
-        .trim();
-      const term = `${cleanArtist} ${song.title}`;
-      const countryParam = isIndo ? '&country=id' : '';
-
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&media=music${countryParam}`
-      );
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (data.results && data.results[0] && data.results[0].previewUrl) {
-        return data.results[0].previewUrl;
-      }
-    } catch {
-      // Fallback
+  // ----------------------------------------------------
+  // Transport Controls: Volume, Seek, Pause, Resume
+  // ----------------------------------------------------
+  public setVolume(val: number) {
+    this.volume = Math.max(0, Math.min(1, val));
+    if (this.masterGain && this.ctx && !this.isMuted) {
+      this.masterGain.gain.setTargetAtTime(this.volume, this.ctx.currentTime, 0.05);
     }
-    return null;
+    this.channels.forEach((c) => {
+      c.audio.volume = this.isMuted ? 0 : this.volume;
+    });
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.setVolume(this.isMuted ? 0 : Math.round(this.volume * 100));
+      } catch {}
+    }
+  }
+
+  public getVolume(): number {
+    return this.volume;
+  }
+
+  public toggleMute(): boolean {
+    this.isMuted = !this.isMuted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setTargetAtTime(
+        this.isMuted ? 0 : this.volume,
+        this.ctx.currentTime,
+        0.05
+      );
+    }
+    this.channels.forEach((c) => {
+      c.audio.muted = this.isMuted;
+    });
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        if (this.isMuted) {
+          this.ytPlayer.mute();
+        } else {
+          this.ytPlayer.unMute();
+          this.ytPlayer.setVolume(Math.round(this.volume * 100));
+        }
+      } catch {}
+    }
+    return this.isMuted;
+  }
+
+  public getIsMuted(): boolean {
+    return this.isMuted;
   }
 
   public pause() {
     this.isPlaying = false;
     this.setCrossfadingState(false);
+    if (this.activeMode === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.pauseVideo();
+      } catch {}
+    }
     this.channels.forEach((c) => {
       c.audio.pause();
     });
@@ -380,35 +641,43 @@ class AudioEngine {
   }
 
   public resume() {
-    const channel = this.channels[this.activeChannelIndex];
-    if (!channel || !channel.song) return;
-
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
-
     this.isPlaying = true;
-    if (channel.audio.src) {
-      channel.audio.play().catch(() => {});
+    if (this.activeMode === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.playVideo();
+      } catch {}
     } else {
-      this.startFallbackTimer(channel.song, channel.audio.currentTime || 0);
+      const channel = this.channels[this.activeChannelIndex];
+      if (channel && channel.audio.src) {
+        channel.audio.play().catch(() => {});
+      } else if (this.currentActiveSong) {
+        this.startFallbackTimer(this.currentActiveSong, this.getPlaybackTime());
+      }
     }
   }
 
   public seek(time: number) {
-    const channel = this.channels[this.activeChannelIndex];
-    if (!channel || !channel.song) return;
-
-    const clamped = Math.max(0, Math.min(channel.song.duration, time));
-    if (channel.audio.src) {
-      channel.audio.currentTime = clamped;
+    if (this.activeMode === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.seekTo(time, true);
+      } catch {}
+    } else {
+      const channel = this.channels[this.activeChannelIndex];
+      if (channel && channel.audio.src) {
+        channel.audio.currentTime = time;
+      }
     }
-    this.notifyTimeUpdate(clamped);
+    this.notifyTimeUpdate(time);
   }
 
   public stopPlayback() {
     this.isPlaying = false;
     this.setCrossfadingState(false);
+    if (this.ytPlayer && this.isYtReady) {
+      try {
+        this.ytPlayer.stopVideo();
+      } catch {}
+    }
     this.channels.forEach((c) => {
       c.audio.pause();
       c.audio.currentTime = 0;
@@ -420,8 +689,15 @@ class AudioEngine {
   }
 
   public getPlaybackTime(): number {
+    if (this.activeMode === 'youtube' && this.ytPlayer && this.isYtReady) {
+      try {
+        return this.ytPlayer.getCurrentTime() || 0;
+      } catch {
+        return 0;
+      }
+    }
     const channel = this.channels[this.activeChannelIndex];
-    return channel ? channel.audio.currentTime : 0;
+    return channel ? channel.audio.currentTime || 0 : 0;
   }
 
   public getIsPlaying(): boolean {
@@ -429,19 +705,18 @@ class AudioEngine {
   }
 
   public getCurrentSong(): Song | null {
-    const channel = this.channels[this.activeChannelIndex];
-    return channel ? channel.song : null;
+    return this.currentActiveSong;
   }
 
   public getAnalyser(): AnalyserNode | null {
     return this.analyser;
   }
 
+  // Frequency Data for Visualizer
   public getFrequencyData(): Uint8Array {
-    if (this.analyser && this.isPlaying) {
+    if (this.activeMode === 'html5' && this.analyser && this.isPlaying) {
       const buffer = new Uint8Array(this.analyser.frequencyBinCount);
       this.analyser.getByteFrequencyData(buffer);
-      // Check if actual audio data is passing through
       let sum = 0;
       for (let i = 0; i < 16; i++) {
         sum += buffer[i];
@@ -451,23 +726,42 @@ class AudioEngine {
       }
     }
 
-    // If audio is playing but cross-origin media element source is muted by CORS,
-    // provide energetic rhythmic pulse for visualizer so it stays alive with the music
-    if (this.isPlaying) {
-      const time = performance.now() / 1000;
-      const count = this.simulatedFreqBuffer.length;
-      for (let i = 0; i < count; i++) {
-        const wave = Math.sin(time * 6 + i * 0.4) * 0.5 + 0.5;
-        const beat = (Math.sin(time * 12) > 0.7 ? 1.0 : 0.4);
-        this.simulatedFreqBuffer[i] = Math.floor((wave * 140 + beat * 80) * (this.isMuted ? 0 : this.volume));
+    // Dynamic rhythm simulation when streaming via YouTube
+    if (this.isPlaying && this.currentActiveSong) {
+      const time = this.getPlaybackTime();
+      const bpm = this.currentActiveSong.audioConfig?.bpm || 110;
+      const beatProgress = (time * (bpm / 60)) % 1;
+      const beatHit = Math.exp(-beatProgress * 4.5); // Sharp rhythmic beat punch
+
+      for (let i = 0; i < 32; i++) {
+        const freqWave = Math.sin(time * 3 + i * 0.4) * 0.5 + 0.5;
+        const bassWeight = i < 8 ? 1.4 : i < 16 ? 1.0 : 0.6;
+        const val = Math.min(255, Math.floor((beatHit * 140 + freqWave * 90) * bassWeight));
+        this.simulatedFreqBuffer[i] = val;
       }
       return this.simulatedFreqBuffer;
     }
 
-    return new Uint8Array(32);
+    return this.simulatedFreqBuffer.fill(0);
   }
 
-  // Event Subscriptions
+  // Crossfade Duration
+  public setCrossfadeDuration(seconds: number) {
+    this.crossfadeDuration = Math.max(0, Math.min(12, seconds));
+    try {
+      localStorage.setItem('hman_crossfade_duration', this.crossfadeDuration.toString());
+    } catch {}
+  }
+
+  public getCrossfadeDuration(): number {
+    return this.crossfadeDuration;
+  }
+
+  public getIsCrossfading(): boolean {
+    return this.isCrossfadingActive;
+  }
+
+  // Subscriptions
   public subscribeTimeUpdate(cb: (time: number) => void): () => void {
     this.onTimeUpdateCallbacks.add(cb);
     return () => this.onTimeUpdateCallbacks.delete(cb);
@@ -497,8 +791,8 @@ class AudioEngine {
     this.onTimeUpdateCallbacks.forEach((cb) => cb(time));
   }
 
-  private notifyDurationChange(duration: number) {
-    this.onDurationChangeCallbacks.forEach((cb) => cb(duration));
+  private notifyDurationChange(dur: number) {
+    this.onDurationChangeCallbacks.forEach((cb) => cb(dur));
   }
 
   private notifyEnded() {
@@ -509,12 +803,13 @@ class AudioEngine {
     this.onCrossfadeTriggerCallbacks.forEach((cb) => cb());
   }
 
-  private setCrossfadingState(state: boolean) {
-    if (this.isCrossfadingActive !== state) {
-      this.isCrossfadingActive = state;
-      this.onCrossfadeStateCallbacks.forEach((cb) => cb(state));
+  private setCrossfadingState(active: boolean) {
+    if (this.isCrossfadingActive !== active) {
+      this.isCrossfadingActive = active;
+      this.onCrossfadeStateCallbacks.forEach((cb) => cb(active));
     }
   }
 }
 
 export const audioEngine = new AudioEngine();
+export default audioEngine;
