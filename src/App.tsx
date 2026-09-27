@@ -344,6 +344,12 @@ export default function App() {
       setPlaybackTime(time);
     });
 
+    const unsubDuration = audioEngine.subscribeDurationChange((dur) => {
+      if (dur > 0) {
+        setDuration(dur);
+      }
+    });
+
     const unsubEnded = audioEngine.subscribeEnded(() => {
       handleSongEnded();
     });
@@ -359,6 +365,7 @@ export default function App() {
 
     return () => {
       unsubTime();
+      unsubDuration();
       unsubEnded();
       unsubCrossfadeTrigger();
       unsubCrossfadeState();

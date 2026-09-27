@@ -25,6 +25,7 @@ export interface Song {
   artistImage: string;
   lyrics: LyricLine[];
   audioConfig: AudioToneConfig;
+  audioUrl?: string;
 }
 
 export interface Playlist {

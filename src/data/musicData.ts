@@ -4,6 +4,7 @@ export const ALL_SONGS: Song[] = [
   // International Hits 2016-2026
   {
     id: 'hit-1',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/11/71/d6/1171d6ad-3c96-e027-2af6-58028426588c/mzaf_15137631797407745471.plus.aac.p.m4a',
     title: 'Starboy',
     artist: 'The Weeknd ft. Daft Punk',
     artistId: 'art-the-weeknd',
@@ -45,6 +46,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-2',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/c7/4f/44c74f0d-72dc-6143-d4d0-ba14d661ca0d/mzaf_9566898362556366703.plus.aac.p.m4a',
     title: 'Shape of You',
     artist: 'Ed Sheeran',
     artistId: 'art-ed-sheeran',
@@ -82,6 +84,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-3',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/67/10/16/67101606-3869-ca44-6c03-e13d6322cb51/mzaf_1135399237022217274.plus.aac.p.m4a',
     title: 'As It Was',
     artist: 'Harry Styles',
     artistId: 'art-harry-styles',
@@ -117,6 +120,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-4',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/59/dc/4d/59dc4dda-93ff-8f1c-c536-f005f6ea6af5/mzaf_3066686759813252385.plus.aac.p.m4a',
     title: 'Levitating',
     artist: 'Dua Lipa',
     artistId: 'art-dua-lipa',
@@ -152,6 +156,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-5',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/68/9e/f7/689ef7fe-14fe-a846-c87f-7d3b2d6344b1/mzaf_4167137058064023087.plus.aac.p.m4a',
     title: 'Flowers',
     artist: 'Miley Cyrus',
     artistId: 'art-miley-cyrus',
@@ -188,6 +193,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-6',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/07/6a/99/076a99ed-b946-431b-6f1f-54fa187ca5bd/mzaf_8102882277995122875.plus.aac.p.m4a',
     title: 'Die With A Smile',
     artist: 'Lady Gaga & Bruno Mars',
     artistId: 'art-lady-gaga',
@@ -225,6 +231,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-7',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/34/31/d3/3431d34e-847f-5d66-df83-0bce688d997e/mzaf_18106743962423782018.plus.aac.p.m4a',
     title: 'Birds of a Feather',
     artist: 'Billie Eilish',
     artistId: 'art-billie-eilish',
@@ -262,6 +269,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-8',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e9/4d/02/e94d0230-11ee-ef94-d2cf-a5d547bd73f4/mzaf_554140808559155562.plus.aac.p.m4a',
     title: 'Espresso',
     artist: 'Sabrina Carpenter',
     artistId: 'art-sabrina-carpenter',
@@ -299,6 +307,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-9',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/7a/15/38/7a1538f3-f41a-a2eb-0f24-8eb6712ee043/mzaf_7740628412097685267.plus.aac.p.m4a',
     title: 'APT.',
     artist: 'ROSÉ & Bruno Mars',
     artistId: 'art-rose',
@@ -336,6 +345,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-10',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/4d/d5/00/4dd5006f-ee02-c3f1-94db-0ed4b8dd68f1/mzaf_14250561294796027079.plus.aac.p.m4a',
     title: 'Beautiful Things',
     artist: 'Benson Boone',
     artistId: 'art-benson-boone',
@@ -371,6 +381,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-11',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a6/61/fc/a661fcaf-f8e5-03db-36f3-31f2e196b1a5/mzaf_18300083713037280538.plus.aac.p.m4a',
     title: 'Too Sweet',
     artist: 'Hozier',
     artistId: 'art-hozier',
@@ -406,6 +417,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'hit-12',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c3/6d/4f/c36d4f23-b87f-046d-7a0e-e3e05d180b2a/mzaf_17235999651335214399.plus.aac.p.m4a',
     title: 'Good Luck, Babe!',
     artist: 'Chappell Roan',
     artistId: 'art-chappell-roan',
@@ -442,6 +454,7 @@ export const ALL_SONGS: Song[] = [
   // Pop Indo Pilihan
   {
     id: 'indo-1',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ce/93/60/ce9360d0-14e3-ec93-0da4-ba88d94a7212/mzaf_16150840965482830516.plus.aac.p.m4a',
     title: 'Sial',
     artist: 'Mahalini',
     artistId: 'art-mahalini',
@@ -477,6 +490,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-2',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/bb/50/cd/bb50cd11-dbbc-f84e-1244-f1b786af7ab4/mzaf_15441108959417505948.plus.aac.p.m4a',
     title: 'Hati-Hati di Jalan',
     artist: 'Tulus',
     artistId: 'art-tulus',
@@ -512,6 +526,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-3',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/19/4a/dc/194adc61-e44c-c609-5e47-480e6e9fde44/mzaf_7249735545085540214.plus.aac.p.m4a',
     title: 'Sisa Rasa',
     artist: 'Mahalini',
     artistId: 'art-mahalini',
@@ -546,6 +561,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-4',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/49/a4/63/49a4632e-ed7d-a68f-811b-aaad7b6f8249/mzaf_14945182221016939725.plus.aac.p.m4a',
     title: 'Komang',
     artist: 'Raim Laode',
     artistId: 'art-raim-laode',
@@ -580,6 +596,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-5',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/da/1f/93/da1f93b4-b2ca-5624-8cba-da0f1f123eed/mzaf_1374587696112479353.plus.aac.p.m4a',
     title: 'Tak Segampang Itu',
     artist: 'Anggi Marito',
     artistId: 'art-anggi-marito',
@@ -613,6 +630,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-6',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e4/6e/2d/e46e2d19-527b-8b0c-f0f6-652e9dc410d9/mzaf_11777851144159489769.plus.aac.p.m4a',
     title: 'Rayuan Perempuan Gila',
     artist: 'Nadin Amizah',
     artistId: 'art-nadin-amizah',
@@ -646,6 +664,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-7',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/9e/29/c3/9e29c3bc-5ee6-12ac-5ca8-19995fe61cc3/mzaf_8668688022169892006.plus.aac.p.m4a',
     title: 'Jiwa Yang Bersedih',
     artist: 'Ghea Indrawari',
     artistId: 'art-ghea-indrawari',
@@ -679,6 +698,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-8',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f0/7b/00/f07b00d4-cea0-79f0-3062-7e2b2d2d274a/mzaf_7698224852945153762.plus.aac.p.m4a',
     title: 'Monokrom',
     artist: 'Tulus',
     artistId: 'art-tulus',
@@ -712,6 +732,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-9',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/12/9a/78/129a78bb-9c6f-75dc-fc5d-877a19e8c0bf/mzaf_8421330473577576783.plus.aac.p.m4a',
     title: 'Satu Bulan',
     artist: 'Bernadya',
     artistId: 'art-bernadya',
@@ -745,6 +766,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-10',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/bb/aa/1a/bbaa1a7f-d395-7002-90f1-fbc235e4b184/mzaf_10156119175195441756.plus.aac.p.m4a',
     title: 'Gala Bunga Matahari',
     artist: 'Sal Priadi',
     artistId: 'art-sal-priadi',
@@ -778,6 +800,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-11',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/80/0c/4e/800c4e7b-d1a3-01e8-c5f8-410d7f26eee8/mzaf_16173782299315690453.plus.aac.p.m4a',
     title: 'Dunia Tipu-Tipu',
     artist: 'Yura Yunita',
     artistId: 'art-yura-yunita',
@@ -811,6 +834,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-12',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e5/39/1c/e5391c7b-b92c-7ce0-5fe8-b3115fa6933a/mzaf_5635026938220547257.plus.aac.p.m4a',
     title: 'Pesan Terakhir',
     artist: 'Lyodra',
     artistId: 'art-lyodra',
@@ -844,6 +868,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-13',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/aa/eb/54/aaeb5424-fb96-4566-669c-36fb99a9e425/mzaf_14244361241051490751.plus.aac.p.m4a',
     title: 'Cuek',
     artist: 'Rizky Febian',
     artistId: 'art-rizky-febian',
@@ -877,6 +902,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-14',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6a/22/96/6a2296f7-bc42-bc3b-d97c-a13ccddd43fe/mzaf_9168965868181094161.plus.aac.p.m4a',
     title: 'Bohongi Hati',
     artist: 'Mahalini',
     artistId: 'art-mahalini',
@@ -909,6 +935,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-15',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/49/ff/48/49ff48c0-c632-7fdd-2e15-2879a6a9e51e/mzaf_815192612749261657.plus.aac.p.m4a',
     title: 'Untungnya, Hidup Harus Tetap Berjalan',
     artist: 'Bernadya',
     artistId: 'art-bernadya',
@@ -943,6 +970,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-16',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/10/10/03/101003d2-860d-97ff-7345-14a1269ff707/mzaf_17105680075846294425.plus.aac.p.m4a',
     title: 'Kita Bikin Romantis',
     artist: "MALIQ & D'Essentials",
     artistId: 'art-maliq',
@@ -976,6 +1004,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-17',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/62/af/c6/62afc64f-ce89-0a93-c1b8-f38b49f3f0a9/mzaf_12443430597556788952.plus.aac.p.m4a',
     title: 'Bunga Hati',
     artist: 'Salma Salsabil',
     artistId: 'art-salma-salsabil',
@@ -1009,6 +1038,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'indo-18',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c5/09/c3/c509c366-7c80-f048-6ea7-4743e407c2e1/mzaf_5472379509832203644.plus.aac.p.m4a',
     title: 'Boleh Juga',
     artist: 'Sal Priadi',
     artistId: 'art-sal-priadi',
@@ -1044,6 +1074,7 @@ export const ALL_SONGS: Song[] = [
   // Lawas (Indonesian Oldies)
   {
     id: 'lawas-1',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0e/dc/bb/0edcbbc3-c7ed-5595-301a-ad3a957d6e20/mzaf_17441730939769254529.plus.aac.p.m4a',
     title: 'Kemesraan',
     artist: 'Iwan Fals',
     artistId: 'art-iwan-fals',
@@ -1078,6 +1109,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'lawas-2',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/6c/91/6c/6c916c71-90a0-5116-7cde-975da0aff103/mzaf_6875430651679363864.plus.aac.p.m4a',
     title: 'Kisah Kasih di Sekolah',
     artist: 'Chrisye',
     artistId: 'art-chrisye',
@@ -1111,6 +1143,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'lawas-3',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d7/70/23/d7702360-879f-7598-94d6-756873b86224/mzaf_12630421543322268449.plus.aac.p.m4a',
     title: 'Bintang Kehidupan',
     artist: 'Nike Ardilla',
     artistId: 'art-nike-ardilla',
@@ -1145,6 +1178,7 @@ export const ALL_SONGS: Song[] = [
   // Rock Legends
   {
     id: 'rock-1',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/17/fc/1e/17fc1eba-946d-84a9-710b-a0e88ea64209/mzaf_3049006317693088799.plus.aac.p.m4a',
     title: 'Bohemian Rhapsody',
     artist: 'Queen',
     artistId: 'art-queen',
@@ -1180,6 +1214,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'rock-2',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/65/49/4e/65494e02-b6d3-26d8-6b0c-9bd98dcf4d5d/mzaf_7665413316386155700.plus.aac.p.m4a',
     title: 'Smells Like Teen Spirit',
     artist: 'Nirvana',
     artistId: 'art-nirvana',
@@ -1216,6 +1251,7 @@ export const ALL_SONGS: Song[] = [
   },
   {
     id: 'rock-3',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/a5/82/2d/a5822d67-2e65-fe95-511e-1f785d23e5cc/mzaf_8619467974951398014.plus.aac.p.m4a',
     title: "Sweet Child O' Mine",
     artist: "Guns N' Roses",
     artistId: 'art-guns-n-roses',
