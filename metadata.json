@@ -2,5 +2,7 @@
   "name": "HMAN - Galaxy Music Experience",
   "description": "Stream hit music, timeless Indonesian classics, rock anthems, and cosmic playlists with an immersive galaxy visualizer, synchronized lyrics, and curated libraries.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
