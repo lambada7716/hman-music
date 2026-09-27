@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HMAN - Galaxy Music Experience</title>
+    <meta name="description" content="Stream hit music, timeless Indonesian classics, rock anthems, and cosmic playlists with an immersive galaxy visualizer, synchronized lyrics, and curated libraries." />
+    <meta property="og:title" content="HMAN - Galaxy Music Experience" />
+    <meta property="og:description" content="Stream hit music, timeless Indonesian classics, rock anthems, and cosmic playlists with an immersive galaxy visualizer, synchronized lyrics, and curated libraries." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // Single Page Apps for GitHub Pages
+      // Restore URL from 404.html redirect if present
+      (function() {
+        var redirect = sessionStorage.getItem('spa_redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa_redirect');
+          try {
+            history.replaceState(null, null, redirect);
+          } catch (e) {
+            console.warn('SPA redirect replaceState error:', e);
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-[#050511] text-white selection:bg-[#8B5CF6]/30 selection:text-white antialiased">
+    <noscript>
+      <div style="padding: 24px; text-align: center; font-family: sans-serif; background: #050511; color: #fff;">
+        Please enable JavaScript to run HMAN Galaxy Music.
+      </div>
+    </noscript>
+    <div id="root">
+      <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #0f0b24 0%, #050511 100%); color: #fff; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+          <div style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(139, 92, 246, 0.15);"></div>
+          <div style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid transparent; border-top-color: #a855f7; border-right-color: #ec4899; animation: hmanSpin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;"></div>
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 16px #a855f7;"></div>
+        </div>
+        <div style="margin-top: 20px; font-weight: 800; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; background: linear-gradient(135deg, #fff 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          HMAN GALAXY
+        </div>
+        <style>
+          @keyframes hmanSpin {
+            to { transform: rotate(360deg); }
+          }
+        </style>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+

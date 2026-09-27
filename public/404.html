@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>HMAN Galaxy Music</title>
+    <script>
+      // Single Page Apps for GitHub Pages
+      // Mitigates 404 on deep links and sub-routes by redirecting to index.html with route preserved
+      var pathSegmentsToKeep = 0;
+      var l = window.location;
+      // If deployed in a subdirectory like /repo-name/, keep path segment
+      var repoSegments = l.pathname.split('/').filter(Boolean);
+      // Store current URL in sessionStorage and redirect to base
+      sessionStorage.setItem('spa_redirect', l.pathname + l.search + l.hash);
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        (repoSegments.length > 0 && !l.pathname.endsWith('.html') ? '/' + repoSegments[0] + '/' : '/')
+      );
+    </script>
+    <meta http-equiv="refresh" content="0;URL='./'" />
+  </head>
+  <body style="background:#050511;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+    <p>Redirecting to HMAN Galaxy Music...</p>
+  </body>
+</html>
